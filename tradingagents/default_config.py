@@ -8,24 +8,27 @@ DEFAULT_CONFIG = {
         "dataflows/data_cache",
     ),
     # LLM settings
-    "llm_provider": "openai",
-    "deep_think_llm": "gpt-4.1-nano",
-    "quick_think_llm": "gpt-4.1-nano",
-    "backend_url": "https://api.openai.com/v1",
+    "llm_provider": "ollama", # Mudamos de openai para ollama
+    "deep_think_llm": "llama3:70b", # Nome exato que vamos puxar amanhã
+    "quick_think_llm": "llama3:70b",
+    "backend_url": "http://localhost:11434", # Porta padrão onde o Ollama roda no servidor
+    
     # Provider-specific thinking configuration
     "google_thinking_level": None,      # "high", "minimal", etc.
     "openai_reasoning_effort": None,    # "medium", "high", "low"
+    
     # Debate and discussion settings
     "max_debate_rounds": 1,
     "max_risk_discuss_rounds": 1,
     "max_recur_limit": 100,
+    
     # Data vendor configuration
     # Category-level configuration (default for all tools in category)
     "data_vendors": {
-        "core_stock_apis": "yfinance",       # Options: alpha_vantage, yfinance
-        "technical_indicators": "yfinance",  # Options: alpha_vantage, yfinance
-        "fundamental_data": "yfinance",      # Options: alpha_vantage, yfinance
-        "news_data": "yfinance",             # Options: alpha_vantage, yfinance
+        "core_stock_apis": "yfinance",       # Nossas ferramentas locais sequestram isso
+        "technical_indicators": "yfinance",  # Nossas ferramentas locais sequestram isso
+        "fundamental_data": "yfinance",      # Nossas ferramentas locais sequestram isso
+        "news_data": "yfinance",             # Nossas ferramentas locais sequestram isso
     },
     # Tool-level configuration (takes precedence over category-level)
     "tool_vendors": {
