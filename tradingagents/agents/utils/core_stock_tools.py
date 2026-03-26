@@ -10,7 +10,7 @@ def get_stock_data(
 ) -> str:
     """Retrieve stock price data (OHLCV) from the local prices database."""
     try:
-        # Redirecionado para a base de dados local
+        # redirecionado para a base de dados local
         return get_local_prices(symbol, start_date, end_date)
     except Exception as e:
         return f"Error fetching local stock data for {symbol}: {str(e)}"

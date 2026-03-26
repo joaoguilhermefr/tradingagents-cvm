@@ -8,10 +8,10 @@ DEFAULT_CONFIG = {
         "dataflows/data_cache",
     ),
     # LLM settings
-    "llm_provider": "ollama", # Mudamos de openai para ollama
-    "deep_think_llm": "llama3:70b", # Nome exato que vamos puxar amanhã
-    "quick_think_llm": "llama3:70b",
-    "backend_url": "http://localhost:11434", # Porta padrão onde o Ollama roda no servidor
+    "llm_provider": "ollama", 
+    "deep_think_llm": "llama3.1:8b", 
+    "quick_think_llm": "llama3.1:8b",
+    "backend_url": "http://localhost:11434", 
     
     # Provider-specific thinking configuration
     "google_thinking_level": None,      # "high", "minimal", etc.

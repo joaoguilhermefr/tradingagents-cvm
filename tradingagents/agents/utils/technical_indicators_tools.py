@@ -16,8 +16,8 @@ def get_indicators(
         end_dt = datetime.strptime(curr_date, "%Y-%m-%d")
         start_dt = end_dt - timedelta(days=look_back_days)
         start_date_str = start_dt.strftime("%Y-%m-%d")
-        
-        # Ignoramos a internet e chamamos a nossa função local
+        # !! 
+        # ignoramos a internet e chamamos a nossa função local
         return get_local_prices(symbol, start_date_str, curr_date)
     except Exception as e:
         return f"Error fetching local technical indicators for {symbol}: {str(e)}"

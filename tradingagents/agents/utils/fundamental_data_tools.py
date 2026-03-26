@@ -1,8 +1,8 @@
 from langchain_core.tools import tool
 from typing import Annotated
 from tradingagents.dataflows.local_sqlite import get_local_fundamentals
-
-# Vamos sequestrar TODAS as funções que o analista pode tentar chamar
+# !!
+# alteração aqui: vamos sequestrar TODAS as funções que o analista pode tentar chamar
 # e forçar todas a retornarem o nosso balanço padronizado do cvm.db
 
 @tool
