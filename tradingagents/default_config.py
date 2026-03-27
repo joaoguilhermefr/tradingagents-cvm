@@ -7,31 +7,24 @@ DEFAULT_CONFIG = {
         os.path.abspath(os.path.join(os.path.dirname(__file__), ".")),
         "dataflows/data_cache",
     ),
-    # LLM settings
-    "llm_provider": "ollama", 
-    "deep_think_llm": "llama3.1:8b", 
-    "quick_think_llm": "llama3.1:8b",
-    "backend_url": "http://localhost:11434", 
     
-    # Provider-specific thinking configuration
-    "google_thinking_level": None,      # "high", "minimal", etc.
-    "openai_reasoning_effort": None,    # "medium", "high", "low"
+    "llm_provider": "openai", 
+    "deep_think_llm": "Qwen/Qwen2.5-72B-Instruct-AWQ", 
+    "quick_think_llm": "Qwen/Qwen2.5-72B-Instruct-AWQ",
+    "backend_url": "http://localhost:8000/v1", 
     
-    # Debate and discussion settings
+    "google_thinking_level": None,
+    "openai_reasoning_effort": None,
+    
     "max_debate_rounds": 1,
     "max_risk_discuss_rounds": 1,
     "max_recur_limit": 100,
     
-    # Data vendor configuration
-    # Category-level configuration (default for all tools in category)
     "data_vendors": {
-        "core_stock_apis": "yfinance",       # Nossas ferramentas locais sequestram isso
-        "technical_indicators": "yfinance",  # Nossas ferramentas locais sequestram isso
-        "fundamental_data": "yfinance",      # Nossas ferramentas locais sequestram isso
-        "news_data": "yfinance",             # Nossas ferramentas locais sequestram isso
+        "core_stock_apis": "yfinance",       
+        "technical_indicators": "yfinance",  
+        "fundamental_data": "yfinance",      
+        "news_data": "yfinance",             
     },
-    # Tool-level configuration (takes precedence over category-level)
-    "tool_vendors": {
-        # Example: "get_stock_data": "alpha_vantage",  # Override category default
-    },
+    "tool_vendors": {},
 }
