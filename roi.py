@@ -52,6 +52,6 @@ total_final = sum(positions.values())
 roi_total = (total_final - initial_capital) / initial_capital * 100
 
 print("-" * 30)
-print(f"ROI Final (Llama 3.1 8B): {roi_total:.2f}%")
+print(f"ROI Final (Qwen 3.5 35B): {roi_total:.2f}%")
 print(f"Capital Final: R$ {total_final:,.2f}")
 print("-" * 30)

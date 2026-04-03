@@ -9,8 +9,8 @@ DEFAULT_CONFIG = {
     ),
     
     "llm_provider": "openai", 
-    "deep_think_llm": "Qwen/Qwen2.5-72B-Instruct-AWQ", 
-    "quick_think_llm": "Qwen/Qwen2.5-72B-Instruct-AWQ",
+    "deep_think_llm": "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4", 
+    "quick_think_llm": "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4",
     "backend_url": "http://localhost:8000/v1", 
     
     "google_thinking_level": None,
