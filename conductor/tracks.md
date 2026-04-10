@@ -11,6 +11,15 @@ A **track** is a major unit of work that typically spans multiple tasks and may 
 
 ## Active Tracks
 
+### [ ] Track: Agent Data Sources & Indicator Computation Refactoring
+*Link: [./conductor/tracks/agents-refactor_20260410/](./conductor/tracks/agents-refactor_20260410/)*
+
+Refactor the analyst suite to align with Brazilian market data availability. Disable sentiment analyst, enhance news data sourcing using material facts patterns, implement finbr-based price retrieval and technical indicator computation, and standardize fundamental indicator extraction. Generate llm_proposal.md with recommendations for prompt updates.
+
+**Priority:** High | **Effort:** 5-7 days | **Status:** New
+
+---
+
 ### [ ] Track: Stabilize and Document CVM Market Adapter
 *Link: [./conductor/tracks/cvm-adapter/](./conductor/tracks/cvm-adapter/)*
 
