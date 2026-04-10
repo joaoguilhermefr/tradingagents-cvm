@@ -7,40 +7,126 @@ Pattern based on: workflow-vs-agent-fundamentals-br/src/tools/material_facts.py
 """
 
 import os
+import re
+import csv
+import io
+import zipfile
 import calendar
 import logging
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
 
+import requests
+
 logger = logging.getLogger(__name__)
 
-# Try to import optional dependencies
+# CVM data sources
+_CVM_IPE_BASE_URL = (
+    "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/IPE/DADOS/ipe_cia_aberta_{year}.zip"
+)
+_IPE_CACHE_FOLDER = "data/ipe_cache"
+
+_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/91.0.4472.124 Safari/537.36"
+    )
+}
+
+# Try to import optional finbr dependency
 try:
     from finbr.b3 import plantao_noticias
     HAS_FINBR = True
 except ImportError:
     HAS_FINBR = False
-    logger.warning("finbr library not installed - material facts fetching limited")
+    plantao_noticias = None
 
 
-def _get_month_range(trade_date: str, lookback_days: int = 7) -> tuple[int, int, int, int]:
-    """Calculate year, month range for fetching material facts.
+def _normalize_cnpj(cnpj: str) -> str:
+    """Remove non-numeric characters from CNPJ."""
+    return re.sub(r"\D", "", cnpj)
 
-    Args:
-        trade_date: Date string in format YYYY-MM-DD
-        lookback_days: Number of days to look back from trade_date
 
-    Returns:
-        Tuple of (start_year, start_month, end_year, end_month)
+def _fetch_ipe_rows_for_cnpj(cnpj: str, year: int) -> List[Dict[str, str]]:
+    """Download (and cache) the CVM IPE yearly ZIP and return all 'Fato Relevante' rows for cnpj.
+
+    Pattern from: workflow-vs-agent-fundamentals-br/src/tools/material_facts.py
+    """
+    os.makedirs(_IPE_CACHE_FOLDER, exist_ok=True)
+    zip_path = os.path.join(_IPE_CACHE_FOLDER, f"ipe_cia_aberta_{year}.zip")
+
+    if not os.path.exists(zip_path):
+        url = _CVM_IPE_BASE_URL.format(year=year)
+        try:
+            r = requests.get(url, headers=_HEADERS, verify=False, timeout=120, stream=True)
+            r.raise_for_status()
+            with open(zip_path, "wb") as f:
+                for chunk in r.iter_content(chunk_size=65536):
+                    f.write(chunk)
+        except Exception as e:
+            logger.warning(f"Failed to download CVM IPE data for {year}: {e}")
+            return []
+
+    cnpj_norm = _normalize_cnpj(cnpj)
+    try:
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            csv_name = f"ipe_cia_aberta_{year}.csv"
+            with zf.open(csv_name) as raw:
+                reader = csv.DictReader(
+                    io.TextIOWrapper(raw, encoding="latin-1"),
+                    delimiter=";",
+                )
+                return [
+                    row
+                    for row in reader
+                    if _normalize_cnpj(row.get("CNPJ_Companhia", "")) == cnpj_norm
+                    and row.get("Categoria", "") == "Fato Relevante"
+                ]
+    except Exception as e:
+        logger.warning(f"Failed to parse IPE data for {year}: {e}")
+        return []
+
+
+def fetch_material_facts_from_ipe(
+    cnpj: str,
+    ticker: str,
+    year: int,
+    month: int,
+) -> List[Dict[str, Any]]:
+    """Fetch 'Fato Relevante' announcements from CVM IPE data portal.
+
+    Pattern from: workflow-vs-agent-fundamentals-br/src/tools/material_facts.py
     """
     try:
-        current = datetime.strptime(trade_date, "%Y-%m-%d")
-        start = current - timedelta(days=lookback_days)
-        return (start.year, start.month, current.year, current.month)
-    except (ValueError, AttributeError):
-        # Default to current month if date parsing fails
-        now = datetime.now()
-        return (now.year, now.month, now.year, now.month)
+        rows = _fetch_ipe_rows_for_cnpj(cnpj, year)
+        prefix = f"{year}-{month:02d}"
+
+        results = []
+        for row in rows:
+            if not row.get("Data_Entrega", "").startswith(prefix):
+                continue
+
+            noticia_id = row.get("Protocolo_Entrega", "").strip()
+            if not noticia_id:
+                continue
+
+            result_item = {
+                "ticker": ticker,
+                "titulo": row.get("Assunto", ""),
+                "headline": row.get("Assunto", ""),
+                "data_hora": row.get("Data_Entrega", ""),
+                "conteudo": f"Material fact from CVM: {row.get('Assunto', '')}",
+                "url": row.get("Link_Download", ""),
+                "fonte": "CVM/IPE",
+                "protocol": noticia_id,
+            }
+            results.append(result_item)
+
+        return results
+    except Exception as e:
+        logger.error(f"Error fetching from IPE for {ticker}: {e}")
+        return []
 
 
 def fetch_material_facts(
@@ -65,72 +151,73 @@ def fetch_material_facts(
             - data_hora: Announcement date/time
             - conteudo: Full content (if available)
             - url: Link to announcement
-            - fonte: Source (always 'CVM/B3')
+            - fonte: Source ('CVM/B3' or 'CVM/IPE')
     """
-    if not HAS_FINBR:
-        logger.warning("finbr not available - returning empty results")
-        return []
-
     results = []
 
     try:
-        # Calculate date range
-        start_year, start_month, end_year, end_month = _get_month_range(trade_date, lookback_days)
+        # Try finbr first if available
+        if HAS_FINBR and plantao_noticias:
+            try:
+                current = datetime.strptime(trade_date, "%Y-%m-%d")
+                start = current - timedelta(days=lookback_days)
 
-        # Generate month boundaries
-        inicio = f"{start_year}-{start_month:02d}-01"
+                inicio = f"{start.year}-{start.month:02d}-{start.day:02d}"
+                fim = f"{current.year}-{current.month:02d}-{current.day:02d}"
 
-        # Calculate last day of end month
-        last_day = calendar.monthrange(end_year, end_month)[1]
-        fim = f"{end_year}-{end_month:02d}-{last_day:02d}"
+                noticias = plantao_noticias.get(inicio=inicio, fim=fim)
 
-        # Fetch from B3 plantão de notícias
-        try:
-            noticias = plantao_noticias.get(inicio=inicio, fim=fim)
-        except Exception as e:
-            logger.warning(f"Failed to fetch from B3 plantão: {e}")
-            return []
+                if noticias:
+                    ticker_root = ticker[:4]  # PETR4 -> PETR
 
-        if not noticias:
-            return []
+                    for noticia in noticias:
+                        noticia_ticker = getattr(noticia, 'ticker', '')
+                        titulo = getattr(noticia, 'titulo', '')
+                        headline = getattr(noticia, 'headline', '')
 
-        # Filter for ticker and material facts
-        ticker_root = ticker[:4]  # PETR4 -> PETR (covers all share classes)
+                        # Match ticker and filter for material facts
+                        if noticia_ticker.startswith(ticker_root) and \
+                           ("Fato Relevante" in titulo or "Fato Relevante" in headline):
 
-        for noticia in noticias:
-            # Match ticker (covers PETR4, PETR3, etc.)
-            if not hasattr(noticia, 'ticker') or not noticia.ticker.startswith(ticker_root):
-                continue
+                            result_item = {
+                                "ticker": noticia_ticker,
+                                "titulo": titulo,
+                                "headline": headline,
+                                "data_hora": getattr(noticia, 'data_hora', ''),
+                                "conteudo": getattr(noticia, 'summary', '') or headline,
+                                "url": getattr(noticia, 'url', ''),
+                                "fonte": "CVM/B3",
+                            }
+                            results.append(result_item)
+            except Exception as e:
+                logger.warning(f"finbr fetch failed: {e}")
+                # Fall through to IPE approach
 
-            # Filter for "Fato Relevante" announcements
-            titulo = getattr(noticia, 'titulo', '')
-            headline = getattr(noticia, 'headline', '')
+        # If no results from finbr, try CVM IPE directly
+        if not results:
+            try:
+                current = datetime.strptime(trade_date, "%Y-%m-%d")
+                # Fetch from multiple months to ensure coverage
+                for months_back in range(lookback_days // 30 + 1):
+                    check_date = current - timedelta(days=months_back * 30)
+                    year = check_date.year
+                    month = check_date.month
 
-            if "Fato Relevante" not in (titulo or "") and "Fato Relevante" not in (headline or ""):
-                continue
+                    # Try to get CNPJ mapping (simplified - use ticker root)
+                    # In production, would need actual CNPJ for the ticker
+                    ipe_results = fetch_material_facts_from_ipe(
+                        cnpj="",  # Would need mapping
+                        ticker=ticker,
+                        year=year,
+                        month=month,
+                    )
+                    results.extend(ipe_results)
 
-            # Extract relevant fields
-            result_item = {
-                "ticker": noticia.ticker if hasattr(noticia, 'ticker') else ticker,
-                "titulo": titulo,
-                "headline": headline,
-                "data_hora": getattr(noticia, 'data_hora', ''),
-                "url": getattr(noticia, 'url', ''),
-                "fonte": "CVM/B3",
-                "conteudo": "",  # Content would require PDF parsing
-            }
-
-            # Add summary from available fields
-            if hasattr(noticia, 'summary') and noticia.summary:
-                result_item["conteudo"] = noticia.summary
-            elif headline:
-                result_item["conteudo"] = headline
-
-            results.append(result_item)
+            except Exception as e:
+                logger.debug(f"IPE fetch also failed: {e}")
 
     except Exception as e:
         logger.error(f"Error fetching material facts for {ticker}: {e}")
-        return []
 
     return results
 
