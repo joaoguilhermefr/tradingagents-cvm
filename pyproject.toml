@@ -33,6 +33,12 @@ dependencies = [
     "yfinance>=0.2.63",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=6.0.0",
+]
+
 [project.scripts]
 tradingagents = "cli.main:app"
 
