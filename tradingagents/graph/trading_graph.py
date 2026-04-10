@@ -33,6 +33,9 @@ from tradingagents.agents.utils.agent_utils import (
     get_global_news
 )
 
+# Import material facts tool
+from tradingagents.agents.utils.material_facts_tools import get_material_facts
+
 from .conditional_logic import ConditionalLogic
 from .setup import GraphSetup
 from .propagation import Propagator
@@ -160,6 +163,8 @@ class TradingAgentsGraph:
             ),
             "news": ToolNode(
                 [
+                    # CVM material facts and news
+                    get_material_facts,
                     # News and insider information
                     get_news,
                     get_global_news,
