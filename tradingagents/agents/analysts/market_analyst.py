@@ -2,9 +2,11 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 import time
 import json
 from typing import Dict, Any, List, Optional
+from datetime import datetime, timedelta
 import pandas as pd
 from tradingagents.agents.utils.agent_utils import get_stock_data, get_indicators
 from tradingagents.dataflows.config import get_config
+from tradingagents.dataflows.local_sqlite import get_local_prices_df
 
 
 def _compute_technical_indicators(price_data: Dict[str, List[float]]) -> Dict[str, Any]:
@@ -55,7 +57,7 @@ def _compute_technical_indicators(price_data: Dict[str, List[float]]) -> Dict[st
             indicators["macd_signal"] = signal.iloc[-1]
             indicators["macd_histogram"] = (macd - signal).iloc[-1]
 
-    except (KeyError, ValueError, IndexError) as e:
+    except (KeyError, ValueError, IndexError):
         # Log but don't fail if computation can't be done
         pass
 
@@ -68,6 +70,34 @@ def create_market_analyst(llm):
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]
         company_name = state["company_of_interest"]
+
+        # Pre-compute technical indicators from 200 days of price data
+        end_dt = datetime.strptime(current_date, "%Y-%m-%d")
+        start_dt = end_dt - timedelta(days=280)  # ~200 trading days
+        prices_df = get_local_prices_df(
+            ticker,
+            start_dt.strftime("%Y-%m-%d"),
+            current_date
+        )
+
+        tech_indicators = {}
+        if prices_df is not None and not prices_df.empty:
+            price_data = {
+                "open": prices_df["open"].tolist(),
+                "high": prices_df["high"].tolist(),
+                "low": prices_df["low"].tolist(),
+                "close": prices_df["close"].tolist(),
+                "volume": prices_df["volume"].tolist(),
+            }
+            tech_indicators = _compute_technical_indicators(price_data)
+
+        # Format computed indicators for inclusion in system message
+        tech_block = ""
+        if tech_indicators:
+            lines = "\n".join(
+                f"  {k}: {v:.4f}" for k, v in sorted(tech_indicators.items())
+            )
+            tech_block = f"\n\nIndicadores Técnicos Pré-Computados para {ticker}:\n{lines}"
 
         tools = [
             get_stock_data,
@@ -101,6 +131,7 @@ Instructions:
 5. Consider multiple indicators together for confirmation
 6. Write a very detailed and nuanced report of the trends you observe. Do not simply state the trends are mixed, provide detailed and finegrained analysis and insights that may help traders make decisions."""
             + """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
+            + tech_block
         )
 
         prompt = ChatPromptTemplate.from_messages(
