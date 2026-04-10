@@ -30,8 +30,11 @@ Refactor the TradingAgents analyst suite to align with Brazilian market data ava
 
 ### 5. Generate LLM Proposal Report
 - Create `llm_proposal.md` documenting required LLM prompt changes
+- Base on template: `llm_proposal_template.md` in this track directory
 - Identify which prompts need updates based on new data availability
-- Provide recommendations but do not implement prompt changes yet
+- Provide specific recommendations for each analyst's LLM prompt
+- Document expected improvements and decision quality enhancements
+- **CRITICAL:** Do not implement prompt changes — only document recommendations
 
 ## Non-Functional Requirements
 - No changes to LLM prompts in this phase (prompts unchanged, proposals documented)
@@ -53,3 +56,29 @@ Refactor the TradingAgents analyst suite to align with Brazilian market data ava
 - New analyst agent types
 - Changes to portfolio management logic
 - Integration with real-time trading (backtesting focus)
+
+## Reference Files & Patterns
+
+### Local Reference Files
+These local files contain patterns and implementations to follow:
+
+1. **Fundamental Analyst Pattern**
+   - Path: `/Users/thiagocastroferreira/Documents/workspace/workflow-vs-agent-fundamentals-br/src/financial_agents/financial_analyst.py`
+   - Usage: Study `_compute_indicators()` method and indicator extraction patterns
+   - Focus: How indicators are extracted vs computed
+
+2. **Material Facts / News Pattern**
+   - Path (GitHub): https://github.com/AIDA-BR/workflow-vs-agent-fundamentals-br/blob/feat/manager-results/src/tools/material_facts.py
+   - Usage: Reference for news data retrieval implementation
+   - Focus: CVM material facts and news extraction patterns
+
+3. **Price Data Parsing Pattern**
+   - Path: `/Users/thiagocastroferreira/Desktop/kubernetes/mcp-tutorial/scripts/parse_prices.ipynb`
+   - Usage: Reference for price fetching and parsing with finbr
+   - Focus: Opening/closing price extraction and data structuring
+
+### Implementation Notes
+- Study these references before implementing each analyst enhancement
+- Adapt patterns to fit TradingAgents architecture (LangGraph, agents)
+- Maintain consistency with existing code style and patterns
+- The fundamental_analyst.py is the primary reference for indicator patterns

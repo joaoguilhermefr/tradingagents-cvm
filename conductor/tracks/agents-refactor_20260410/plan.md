@@ -11,8 +11,9 @@
 - [ ] Task: Set up development environment
   - [ ] Create feature branch
   - [ ] Verify finbr library availability and API
-  - [ ] Identify material_facts.py patterns to adopt
-  - [ ] Review financial_analyst.py indicator patterns
+  - [ ] Review material_facts.py patterns: `/Users/thiagocastroferreira/Documents/workspace/workflow-vs-agent-fundamentals-br/src/tools/material_facts.py` (also: https://github.com/AIDA-BR/workflow-vs-agent-fundamentals-br/blob/feat/manager-results/src/tools/material_facts.py)
+  - [ ] Review financial_analyst.py patterns: `/Users/thiagocastroferreira/Documents/workspace/workflow-vs-agent-fundamentals-br/src/financial_agents/financial_analyst.py`
+  - [ ] Review price parsing patterns: `/Users/thiagocastroferreira/Desktop/kubernetes/mcp-tutorial/scripts/parse_prices.ipynb`
 
 ## Phase 2: Test Definition (TDD - Red Phase)
 - [ ] Task: Write tests for disabled Sentiment Analyst
@@ -51,20 +52,23 @@
   - [ ] Pass tests: sentiment analyst removal
 
 - [ ] Task: Implement News Analyst enhancement
+  - [ ] Study reference: `/Users/thiagocastroferreira/Documents/workspace/workflow-vs-agent-fundamentals-br/src/tools/material_facts.py`
   - [ ] Create news data retrieval function (material_facts pattern)
-  - [ ] Implement news source integration
+  - [ ] Implement news source integration (CVM disclosures, news agencies)
   - [ ] Add news data validation and structuring
   - [ ] Update news analyst to use new data source
   - [ ] Pass tests: news data retrieval and processing
 
 - [ ] Task: Implement Market/Technical Analyst
+  - [ ] Study reference: `/Users/thiagocastroferreira/Desktop/kubernetes/mcp-tutorial/scripts/parse_prices.ipynb`
   - [ ] Add finbr library integration
-  - [ ] Implement price data retrieval function
-  - [ ] Implement technical indicator computation
+  - [ ] Implement price data retrieval function (opening/closing prices)
+  - [ ] Implement technical indicator computation (MACD, RSI, etc.)
   - [ ] Update market analyst to use computed indicators
   - [ ] Pass tests: price fetching and indicator computation
 
 - [ ] Task: Enhance Fundamental Analyst
+  - [ ] Study reference: `/Users/thiagocastroferreira/Documents/workspace/workflow-vs-agent-fundamentals-br/src/financial_agents/financial_analyst.py`
   - [ ] Implement indicator extraction logic
   - [ ] Implement _compute_indicators() method
   - [ ] Update fundamental analyst with new indicators
