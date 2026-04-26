@@ -5,7 +5,7 @@ from typing import Dict
 from datetime import datetime, timedelta
 from tradingagents.agents.utils.agent_utils import get_fundamentals, get_balance_sheet, get_cashflow, get_income_statement, get_insider_transactions
 from tradingagents.dataflows.config import get_config
-from tradingagents.dataflows.local_sqlite import get_local_fundamentals_dict, get_local_prices_df
+from tradingagents.dataflows.local_sqlite import get_db_fields, get_local_prices_df, get_total_shares
 
 
 def _safe_div(numerator: float, denominator: float) -> float:
@@ -124,13 +124,13 @@ def create_fundamentals_analyst(llm):
         company_name = state["company_of_interest"]
 
         # Pre-compute financial indicators from local data
-        db_fields = get_local_fundamentals_dict(ticker, current_date)
+        db_fields = get_db_fields(ticker, current_date)
         prices_df = get_local_prices_df(ticker, start_date="2020-01-01", end_date=current_date)
 
         price = 0.0
-        total_shares = 1.0
         if prices_df is not None and not prices_df.empty:
             price = float(prices_df["close"].iloc[-1])
+        total_shares = get_total_shares(ticker, current_date)
 
         computed_indicators = _compute_indicators(db_fields, price, total_shares) if db_fields else {}
 
