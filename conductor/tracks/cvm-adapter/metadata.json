@@ -1,0 +1,15 @@
+{
+  "track_id": "cvm-adapter",
+  "type": "enhancement",
+  "status": "new",
+  "created_at": "2026-04-10T00:00:00Z",
+  "updated_at": "2026-04-10T00:00:00Z",
+  "title": "Stabilize and Document CVM Market Adapter",
+  "description": "Consolidate Brazilian market (CVM) adaptation work, ensure clean integration with core framework, and provide comprehensive documentation",
+  "priority": "high",
+  "estimated_effort_days": 5,
+  "phase": 1,
+  "tags": ["market-adapter", "brazilian-market", "CVM", "documentation", "refactoring"],
+  "dependencies": [],
+  "blocked_by": []
+}

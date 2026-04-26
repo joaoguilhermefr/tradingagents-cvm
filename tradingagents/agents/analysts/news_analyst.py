@@ -2,6 +2,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 import time
 import json
 from tradingagents.agents.utils.agent_utils import get_news, get_global_news
+from tradingagents.agents.utils.material_facts_tools import get_material_facts
 from tradingagents.dataflows.config import get_config
 
 
@@ -11,12 +12,24 @@ def create_news_analyst(llm):
         ticker = state["company_of_interest"]
 
         tools = [
+            get_material_facts,
             get_news,
             get_global_news,
         ]
 
         system_message = (
-            "You are a news researcher tasked with analyzing recent news and trends over the past week. Please write a comprehensive report of the current state of the world that is relevant for trading and macroeconomics. Use the available tools: get_news(query, start_date, end_date) for company-specific or targeted news searches, and get_global_news(curr_date, look_back_days, limit) for broader macroeconomic news. Do not simply state the trends are mixed, provide detailed and finegrained analysis and insights that may help traders make decisions."
+            "You are a news researcher tasked with analyzing recent news, material facts (Fatos Relevantes), and trends relevant to trading and macroeconomics. "
+            "Use the available tools strategically:\n"
+            "1. get_material_facts(ticker, trade_date) - Fetch official CVM announcements (highest priority for company-specific analysis)\n"
+            "2. get_news(query, start_date, end_date) - Search for company-specific or targeted news\n"
+            "3. get_global_news(curr_date, look_back_days, limit) - Broader macroeconomic and market-wide news\n\n"
+            "Priority sequence for a stock analysis:\n"
+            "- Start with get_material_facts to capture official company announcements\n"
+            "- Supplement with company-specific news via get_news\n"
+            "- Add global market context via get_global_news\n\n"
+            "Material facts (Fatos Relevantes) are official CVM disclosures about events that may significantly impact the stock price. "
+            "These carry high credibility and should be weighted heavily in your analysis.\n\n"
+            "Do not simply state the trends are mixed; provide detailed and fine-grained analysis with specific insights that may help traders make decisions."
             + """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
         )
 

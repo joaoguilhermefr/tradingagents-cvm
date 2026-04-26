@@ -1,0 +1,8 @@
+{
+  "track_id": "agents-refactor_20260410",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-04-10T00:00:00Z",
+  "updated_at": "2026-04-10T00:00:00Z",
+  "description": "Refactor agent data sources and indicator computation to align with Brazilian market data availability and improve technical/fundamental indicator accuracy"
+}

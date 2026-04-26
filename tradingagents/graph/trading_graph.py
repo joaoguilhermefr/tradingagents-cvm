@@ -33,6 +33,9 @@ from tradingagents.agents.utils.agent_utils import (
     get_global_news
 )
 
+# Import material facts tool
+from tradingagents.agents.utils.material_facts_tools import get_material_facts
+
 from .conditional_logic import ConditionalLogic
 from .setup import GraphSetup
 from .propagation import Propagator
@@ -45,7 +48,7 @@ class TradingAgentsGraph:
 
     def __init__(
         self,
-        selected_analysts=["market", "social", "news", "fundamentals"],
+        selected_analysts=["market", "news", "fundamentals"],
         debug=False,
         config: Dict[str, Any] = None,
         callbacks: Optional[List] = None,
@@ -158,14 +161,10 @@ class TradingAgentsGraph:
                     get_indicators,
                 ]
             ),
-            "social": ToolNode(
-                [
-                    # News tools for social media analysis
-                    get_news,
-                ]
-            ),
             "news": ToolNode(
                 [
+                    # CVM material facts and news
+                    get_material_facts,
                     # News and insider information
                     get_news,
                     get_global_news,
